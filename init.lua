@@ -4,11 +4,23 @@
 local uv = require "uv";
 local hrtime =  uv.hrtime;
 local insert = table.insert;
-
+local floor = math.floor;
+local rep = string.rep;
+local format = string.format;
+local concat = table.concat;
+local function point(x,pos)
+	pos = 10^pos;
+	return floor(x*pos)/pos;
+end
 local unitMut = 1000;
 local units = {
 	{1e3,"us"},{1e6,"ms"},{1e9,"sec"}
 };
+local indent = " |- ";
+local points = 4; -- max time point length
+local percentPoints = 2; -- max percent point length
+local itemFormat = "%s%s: %s%s%s\n";
+local percentFormat = " (Par:%s%%,Rot:%s%%)";
 
 local profiler = {};
 profiler.__index = profiler;
@@ -51,19 +63,6 @@ function profiler:stop()
 	self._block = block._parent;
 end
 
-local floor = math.floor;
-local function point(x,pos)
-	pos = 10^pos;
-	return floor(x*pos)/pos;
-end
-
-local indent = " |- ";
-local points = 4;
-local percentPoints = 2;
-local itemFormat = "%s%s: %s%s%s\n";
-local percent = " (Par:%s%%,Rot:%s%%)";
-local rep = string.rep;
-local format = string.format;
 local function output(thing,indentLevel,str)
 	indentLevel = indentLevel or 0;
 	str = str or "";
@@ -84,7 +83,7 @@ local function output(thing,indentLevel,str)
 		rep(indent,indentLevel),
 		thing._descript,
 		point(timestampFormatted,points),unit,
-		root and parent and format(percent,
+		root and parent and format(percentFormat,
 			tostring(point((timestamp/parent._timestamp)*100,percentPoints)),
 			tostring(point((timestamp/root._timestamp  )*100,percentPoints))
 		) or ""
@@ -101,6 +100,14 @@ end
 function profiler:print(index)
 	index = index and (index - 1) or 0
 	return output(self[#self - index]);
+end
+
+function profiler:printAll()
+	local t = {};
+	for _,result in ipairs(self) do
+		insert(t,output(result));
+	end
+	return concat(t)
 end
 
 return profiler;
