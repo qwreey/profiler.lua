@@ -8,6 +8,7 @@ local floor = math.floor;
 local rep = string.rep;
 local format = string.format;
 local concat = table.concat;
+local gsub = string.gsub;
 local function point(x,pos)
 	pos = 10^pos;
 	return floor(x*pos)/pos;
@@ -19,7 +20,7 @@ local units = {
 local indent = " |- ";
 local points = 4; -- max time point length
 local percentPoints = 2; -- max percent point length
-local itemFormat = "%s%s: %s%s%s\n";
+local itemFormat = "%s%s: %s%s%s\n%s";
 local percentFormat = " (Par:%s%%,Rot:%s%%)";
 
 local profiler = {};
@@ -52,7 +53,7 @@ function profiler:start(descript)
 	new._birth = hrtime();
 end
 
-function profiler:stop()
+function profiler:stop(descript,...)
 	local now = hrtime();
 
 	local block = self._block;
@@ -60,6 +61,12 @@ function profiler:stop()
 		error"profiler was already stopped";
 	end
 	block._death = now;
+	if descript then
+		if select("#",...) ~= 0 then
+			descript = format(descript,...);
+		end
+		block._enddescript = descript;
+	end
 	self._block = block._parent;
 end
 
@@ -79,14 +86,22 @@ local function output(thing,indentLevel,str)
 	local root,parent = thing._root,thing._parent;
 	thing._timestamp = timestamp;
 
+	local footer = "";
+	local thisIndent = rep(indent,indentLevel);
+	local endDescript = thing._enddescript;
+	if endDescript then
+		local newLine = thisIndent .. " • ";
+		footer = newLine .. gsub(endDescript,"\n",newLine) .. "\n";
+	end
+
 	str = str .. format(itemFormat,
-		rep(indent,indentLevel),
+		rep(thisIndent,indentLevel),
 		thing._descript,
 		point(timestampFormatted,points),unit,
 		root and parent and format(percentFormat,
 			tostring(point((timestamp/parent._timestamp)*100,percentPoints)),
 			tostring(point((timestamp/root._timestamp  )*100,percentPoints))
-		) or ""
+		) or "",footer
 	)
 
 	local nextIndent = indentLevel + 1;
