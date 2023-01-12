@@ -1,8 +1,14 @@
+local uv,hrtime
+local unitMut = 1000;
+local units = {{1e3,"us"},{1e6,"ms"},{1e9,"sec"}};
+if not pcall(function ()
+	uv = require "uv";
+	hrtime =  uv.hrtime;
+end) then
+	hrtime = os.clock
+	units = {{1/1e6,"us"},{1/1e3,"ms"},{1,"sec"}};
+end
 
---! 이 라이브러리는 로블록스의 LUA U 를 전혀 호환하지않습니다
-
-local uv = require "uv";
-local hrtime =  uv.hrtime;
 local insert = table.insert;
 local floor = math.floor;
 local rep = string.rep;
@@ -13,10 +19,6 @@ local function point(x,pos)
 	pos = 10^pos;
 	return floor(x*pos)/pos;
 end
-local unitMut = 1000;
-local units = {
-	{1e3,"us"},{1e6,"ms"},{1e9,"sec"}
-};
 local indent = " |- ";
 local points = 4; -- max time point length
 local percentPoints = 2; -- max percent point length
