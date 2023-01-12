@@ -95,7 +95,7 @@ local function output(thing,indentLevel,str)
 	end
 
 	str = str .. format(itemFormat,
-		rep(thisIndent,indentLevel),
+		thisIndent,
 		thing._descript,
 		point(timestampFormatted,points),unit,
 		root and parent and format(percentFormat,
