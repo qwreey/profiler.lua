@@ -1,0 +1,9 @@
+{
+    "name": "profiler",
+    "tree": {
+        "$path": "export.lua",
+        "main": {
+            "$path": "init.lua"
+        }
+    }
+}
